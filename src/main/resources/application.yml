@@ -1,0 +1,4 @@
+app:
+  file:
+    config:
+      copy_location: /tmp
