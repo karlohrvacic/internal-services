@@ -1,62 +1,25 @@
-<!--<div class="container-fluid main">-->
-<!--    <div class="infobox p-3">-->
-<!--        <form [formGroup]="uploadForm">-->
-<!--            <label class="form-label">Select a document for printing:</label>-->
-<!--            <input type="file" class="file-input form-control form-control-lg" (change)="onFileSelected($event)"/>-->
-
-<!--            <label class="form-label">Number of copies</label>-->
-<!--            <input class="form-control form-control-lg" formControlName="numberOfCopies" min="1">-->
-
-<!--            <label class="form-label">Način prinatanja:</label>-->
-<!--            <option *ngFor="let fileType of printTypes"-->
-<!--                    formControlName="printingType">-->
-<!--                {{fileType}}-->
-<!--            </option>-->
-
-<!--            <label class="form-label">Selektivan odabir stranica (za sve 0-0):</label>-->
-<!--            <input class="form-control form-control-lg" min="0">-->
-<!--            <input class="form-control form-control-lg" min="0">-->
-
-<!--            <button class="btn btn-primary m-2" (click)="onUpload()">Print</button>-->
-
-<!--        </form>-->
-<!--        <div *ngIf="file">-->
-<!--            <section class="file-info">-->
-<!--                File details:-->
-<!--                <ul>-->
-<!--                    <li>Name: {{file.name}}</li>-->
-<!--                    <li>Type: {{file.type}}</li>-->
-<!--                    <li>Size: {{file.size}} bytes</li>-->
-<!--                </ul>-->
-<!--            </section>-->
-
-
-<!--            <section [ngSwitch]="status">-->
-<!--                <p *ngSwitchCase="'uploading'">⏳ Uploading...</p>-->
-<!--                <p *ngSwitchCase="'success'">✅ Done!</p>-->
-<!--                <p *ngSwitchCase="'fail'">❌ Error!</p>-->
-<!--                <p *ngSwitchDefault>😶 Waiting to upload...</p>-->
-<!--            </section>-->
-<!--        </div>-->
-<!--        <a [routerLink]=""><button class="btn btn-outline-secondary">povratak na izbornik</button></a>-->
-<!--    </div>-->
-<!--</div>-->
 <div class="container-fluid main">
     <div class="infobox p-3">
         <form (ngSubmit)="onUpload()" [formGroup]="uploadForm">
             <label>Select a document for printing:</label>
             <input (change)="onFileSelected($event)" class="file-input form-control form-control-lg" type="file"/>
+            <span *ngIf="uploadForm.get('file')?.errors?.['required'] && !uploadForm.untouched" class="toast-warning">Select a file</span>
 
             <label>Number of copies:</label>
             <input class="form-control form-control-lg" formControlName="numberOfCopies" min="1">
+            <span *ngIf="uploadForm.get('numberOfCopies')?.errors?.['required'] && !uploadForm.untouched"
+                  class="toast-warning">Enter a number of copies</span>
 
             <label>Type of printing:</label>
             <select class="form-control form-control-lg" formControlName="printingType">
+                <option disabled selected value="default">Select a printing type</option>
                 <option *ngFor="let type of enumKeys" [value]="type">{{ getValueFromKey(type) }}</option>
             </select>
+            <span *ngIf="uploadForm.get('printingType')?.errors?.['required'] && !uploadForm.untouched"
+                  class="toast-warning">Select a printing type</span>
 
-            <label>Print whole document:</label>
-            <input class="form-control form-control-lg" formControlName="printWholeDocument" type="checkbox">
+            <label>Print the whole document:</label>
+            <input class="form-check-label" formControlName="printWholeDocument" type="checkbox">
 
             <div *ngIf="!uploadForm.get('printWholeDocument')?.value">
                 <label>Pages range from:</label>
@@ -71,10 +34,9 @@
                     <ul>
                         <li>Name: {{file.name}}</li>
                         <li>Type: {{file.type}}</li>
-                        <li>Size: {{file.size}} bytes</li>
+                        <li>Size: {{(file.size / (1024 * 1024)).toFixed(2)}} Mb</li>
                     </ul>
                 </section>
-
 
                 <section [ngSwitch]="status">
                     <p *ngSwitchCase="'uploading'">⏳ Uploading...</p>
@@ -83,7 +45,7 @@
                     <p *ngSwitchDefault>😶 Waiting to upload...</p>
                 </section>
             </div>
-            <button class="btn btn-primary m-2" type="submit">Upload</button>
+            <button [disabled]="!uploadForm.valid" class="btn btn-primary m-2" type="submit">Upload</button>
         </form>
     </div>
 </div>

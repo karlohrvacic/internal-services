@@ -1,67 +1,9 @@
-// import { Component } from '@angular/core';
-// import {HttpClient} from "@angular/common/http";
-// import {throwError} from "rxjs";
-// import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-// import {PrintingType} from "../enum/printing-type";
-//
-// @Component({
-//   selector: 'app-print-form',
-//   templateUrl: './print-form.component.html',
-//   styleUrls: ['./print-form.component.css']
-// })
-// export class PrintFormComponent {
-//   status: "initial" | "uploading" | "success" | "fail" = "initial";
-//   uploadForm: FormGroup;
-//   file: File | null = null;
-//
-//   constructor(private http: HttpClient, private formBuilder: FormBuilder) {
-//     this.uploadForm = new FormGroup({
-//         numberOfCopies: this.formBuilder.control(1, [Validators.required, Validators.min(1)]),
-//         printingType: this.formBuilder.control(PrintingType.PRINT_DOUBLE_SIDED_ON_LONG_EDGE, Validators.required),
-//         printWholeDocument: this.formBuilder.control(true, Validators.required),
-//         pagesRangeFrom: this.formBuilder.control(0),
-//         pagesRangeTo: this.formBuilder.control(0),
-//     });
-//   }
-//
-//   ngOnInit(): void {}
-//
-//   onFileSelected(event: any) {
-//     const file: File = event.target.files[0];
-//
-//     if (file) {
-//       this.status = "initial";
-//       this.file = file;
-//     }
-//   }
-//
-//   onUpload() {
-//     if (this.file) {
-//       const formData = new FormData();
-//
-//       formData.append('file', this.file, this.file.name);
-//
-//       const upload$ = this.http.post("https://httpbin.org/post", formData);
-//
-//       this.status = 'uploading';
-//
-//       upload$.subscribe({
-//         next: () => {
-//           this.status = 'success';
-//         },
-//         error: (error: any) => {
-//           this.status = 'fail';
-//           return throwError(() => error);
-//         },
-//       });
-//     }
-//   }
-// }
 import {Component} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {PrintingType} from "../enum/printing-type";
 import {throwError} from "rxjs";
 import {HttpClient} from "@angular/common/http";
+import {ToastrService} from 'ngx-toastr';
 
 @Component({
   selector: 'app-print-form',
@@ -69,22 +11,23 @@ import {HttpClient} from "@angular/common/http";
   styleUrls: ['./print-form.component.css']
 })
 export class PrintFormComponent {
-  uploadForm: FormGroup;
+  uploadForm: UntypedFormGroup;
   file: File | null = null;
   status: "initial" | "uploading" | "success" | "fail" = "initial";
   printingType = PrintingType;
   enumKeys;
+  private BACKEND_PRINT_URL: string = "http://localhost:8080/print";
 
-  constructor(private formBuilder: FormBuilder, private http: HttpClient) {
+  constructor(private http: HttpClient, private toastr: ToastrService) {
     this.enumKeys = Object.keys(this.printingType);
 
-    this.uploadForm = this.formBuilder.group({
-      file: [null, Validators.required],
-      numberOfCopies: [1, [Validators.required, Validators.min(1)]],
-      printingType: [PrintingType.DOUBLE_SIDED_ON_LONG_EDGE.toString, Validators.required],
-      printWholeDocument: [true, Validators.required],
-      pagesRangeFrom: [{value: 0, disabled: true}],
-      pagesRangeTo: [{value: 0, disabled: true}],
+    this.uploadForm = new UntypedFormGroup({
+      'file': new UntypedFormControl(null, [Validators.required]),
+      'numberOfCopies': new UntypedFormControl(1, [Validators.required]),
+      'printingType': new UntypedFormControl("default", [Validators.required]),
+      'printWholeDocument': new UntypedFormControl(true, [Validators.required]),
+      'pagesRangeFrom': new UntypedFormControl(0, [Validators.required]),
+      'pagesRangeTo': new UntypedFormControl(0, [Validators.required]),
     });
 
     this.uploadForm.get('printWholeDocument')?.valueChanges.subscribe(value => {
@@ -108,19 +51,25 @@ export class PrintFormComponent {
   }
 
   onUpload() {
-    if (this.uploadForm.valid) {
-      const upload$ = this.http.post("http://localhost:8080/print", this.uploadForm.value);
+    if (this.uploadForm.valid && this.file) {
+      const formData = new FormData();
+
+      formData.append('file', this.file, this.file.name);
+
+      const upload$ = this.http.post(this.createRequestParam(), formData, {responseType: 'text'});
 
       this.status = 'uploading';
 
       upload$.subscribe({
-        next: () => {
+        next: (res: any) => {
           this.status = 'success';
+          this.toastr.info(res, 'Job id');
         },
         error: (error: any) => {
           this.status = 'fail';
+          this.toastr.error(error.message, 'Error while printing');
           return throwError(() => error);
-        },
+        }
       });
     }
   }
@@ -128,6 +77,15 @@ export class PrintFormComponent {
   getValueFromKey(key: string) {
     // @ts-ignore
     return this.printingType[key];
+  }
+
+  private createRequestParam() {
+    return this.BACKEND_PRINT_URL +
+        "?copies=" + this.uploadForm.get('numberOfCopies')?.value +
+        "&printType=" + this.uploadForm.get('printingType')?.value +
+        "&printWholeDocument=" + this.uploadForm.get('printWholeDocument')?.value +
+        "&startPage=" + this.uploadForm.get('pagesRangeFrom')?.value +
+        "&endPage=" + this.uploadForm.get('pagesRangeTo')?.value;
   }
 
 }

@@ -6,6 +6,8 @@ import {AppComponent} from './app.component';
 import {PrintFormComponent} from './print-form/print-form.component';
 import {HttpClientModule} from "@angular/common/http";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {ToastrModule} from 'ngx-toastr';
 
 @NgModule({
     declarations: [
@@ -17,7 +19,9 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
         FormsModule,
         AppRoutingModule,
         HttpClientModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        BrowserAnimationsModule,
+        ToastrModule.forRoot()
     ],
     providers: [],
     bootstrap: [AppComponent]
