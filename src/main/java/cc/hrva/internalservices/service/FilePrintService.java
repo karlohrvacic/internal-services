@@ -27,7 +27,8 @@ public class FilePrintService {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command("lp", printFileDto.getPrintFileLocation(),
                 "-n", printFileDto.getCopies().toString(),
-                "-o", "sides=" + printFileDto.getPrintType().getPrinterCommand() + getPrintRange(printFileDto));
+                "-o", "sides=" + printFileDto.getPrintType().getPrinterCommand(),
+                getPrintRange(printFileDto));
 
         Process process = builder.start();
         BufferedReader output = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -41,8 +42,7 @@ public class FilePrintService {
         if (printFileDto.isPrintWholeDocument()) {
             return "";
         }
-        //TODO range print does not work
-        return " -P " + printFileDto.getStartPage() + "-" + printFileDto.getEndPage();
+        return "-P " + printFileDto.getStartPage() + "-" + printFileDto.getEndPage();
     }
 
 }

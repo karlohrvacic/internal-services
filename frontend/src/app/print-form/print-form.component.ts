@@ -24,7 +24,7 @@ export class PrintFormComponent {
     this.uploadForm = new UntypedFormGroup({
       'file': new UntypedFormControl(null, [Validators.required]),
       'numberOfCopies': new UntypedFormControl(1, [Validators.required]),
-      'printingType': new UntypedFormControl("default", [Validators.required]),
+      'printingType': new UntypedFormControl("DOUBLE_SIDED_ON_LONG_EDGE", [Validators.required]),
       'printWholeDocument': new UntypedFormControl(true, [Validators.required]),
       'pagesRangeFrom': new UntypedFormControl(0, [Validators.required]),
       'pagesRangeTo': new UntypedFormControl(0, [Validators.required]),
